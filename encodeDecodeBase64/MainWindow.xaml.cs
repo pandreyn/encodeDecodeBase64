@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using encodeDecodeBase64.Utils;
 using Microsoft.Win32;
 using System.IO;
+using encodeDecodeBase64.Windows;
 
 namespace encodeDecodeBase64
 {
@@ -79,6 +80,12 @@ namespace encodeDecodeBase64
 		private void Window_Closed(object sender, EventArgs e)
 		{
 			Properties.Settings.Default.Save();
+		}
+
+		private void MenuItem_Click_1(object sender, RoutedEventArgs e)
+		{
+			SettingsWindow win2 = new SettingsWindow();
+			win2.Show();
 		}
 	}
 }

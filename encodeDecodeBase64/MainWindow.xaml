@@ -14,6 +14,7 @@
 		<Menu DockPanel.Dock="Top">
 			<MenuItem Header="_File">
 				<MenuItem Header="_Open" Click="OpenLeftBtn_Click"/>
+				<MenuItem Header="Settings" Click="MenuItem_Click_1"/>
 				<MenuItem Header="_Close" Click="MenuItem_Click"/>
 			</MenuItem>
 		</Menu>
@@ -36,7 +37,8 @@
 					<Separator Width="10"/>
 					<Button x:Name="ClearLeftBtn" Content="Clear" Click="ClearLeftBtn_Click" />
 				</ToolBar>
-				<TextBox x:Name="encodeTxt" TextWrapping="Wrap" Margin="2" AcceptsReturn="True"/>
+				<TextBox x:Name="encodeTxt" TextWrapping="Wrap" Margin="2" AcceptsReturn="True"						 
+						 Text="{Binding Source={StaticResource Settings}, Path=Default.LeftPanel}"/>
 			</DockPanel>
 			<DockPanel Grid.Column="2" Margin="10" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
 				<ToolBar DockPanel.Dock="Top">
@@ -45,7 +47,8 @@
 					<Separator Width="10"/>
 					<Button x:Name="ClearRightBtn" Content="Clear" Click="ClearRightBtn_Click" />
 				</ToolBar>
-				<TextBox x:Name="decodeTxt" TextWrapping="Wrap" Margin="2" AcceptsReturn="True"/>
+				<TextBox x:Name="decodeTxt" TextWrapping="Wrap" Margin="2" AcceptsReturn="True"
+						 Text="{Binding Source={StaticResource Settings}, Path=Default.RightPanel}"/>
 			</DockPanel>
 			
 		</Grid>
