@@ -32,9 +32,6 @@ namespace encodeDecodeBase64.Windows
 		private void btnOk_Click(object sender, RoutedEventArgs e)
 		{
 			Properties.Settings.Default.Save();
-
-			string z = Properties.Settings.Default["Servername"].ToString();
-
 			this.Close();
 		}
 	}

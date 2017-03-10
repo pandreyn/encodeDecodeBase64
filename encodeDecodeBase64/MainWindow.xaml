@@ -46,6 +46,8 @@
 					<Button x:Name="CopyToClipboardBtn" Content="Copy" Click="CopyToClipboardBtn_Click" />
 					<Separator Width="10"/>
 					<Button x:Name="ClearRightBtn" Content="Clear" Click="ClearRightBtn_Click" />
+					<Separator Width="10"/>
+					<Button x:Name="UpdateServerBtn" Content="Update Server" Click="UpdateServerBtn_Click" />
 				</ToolBar>
 				<TextBox x:Name="decodeTxt" TextWrapping="Wrap" Margin="2" AcceptsReturn="True"
 						 Text="{Binding Source={StaticResource Settings}, Path=Default.RightPanel}"/>

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace encodeDecodeBase64.Utils
+namespace encodeDecodeBase64
 {
-	class base64Utils
+	class Base64Utils
 	{
 		public static string Base64Encode(string plainText)
 		{

@@ -12,7 +12,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using encodeDecodeBase64.Utils;
 using Microsoft.Win32;
 using System.IO;
 using encodeDecodeBase64.Windows;
@@ -36,12 +35,12 @@ namespace encodeDecodeBase64
 
 		private void EncodeBtn_Click(object sender, RoutedEventArgs e)
 		{
-			decodeTxt.Text = base64Utils.Base64Encode(encodeTxt.Text);
+			decodeTxt.Text = Base64Utils.Base64Encode(encodeTxt.Text);
 		}
 
 		private void DecodeBtn_Click(object sender, RoutedEventArgs e)
 		{
-			encodeTxt.Text = base64Utils.Base64Decode(decodeTxt.Text);
+			encodeTxt.Text = Base64Utils.Base64Decode(decodeTxt.Text);
 		}
 
 		private void ClearLeftBtn_Click(object sender, RoutedEventArgs e)
@@ -86,6 +85,12 @@ namespace encodeDecodeBase64
 		{
 			SettingsWindow win2 = new SettingsWindow();
 			win2.Show();
+		}
+
+		private void UpdateServerBtn_Click(object sender, RoutedEventArgs e)
+		{
+			UpdateServerWindow updWnd = new UpdateServerWindow(decodeTxt.Text);
+			updWnd.Show();
 		}
 	}
 }

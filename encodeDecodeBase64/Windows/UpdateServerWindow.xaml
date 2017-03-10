@@ -1,0 +1,25 @@
+﻿<Window x:Class="encodeDecodeBase64.Windows.UpdateServerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:encodeDecodeBase64.Windows"
+        mc:Ignorable="d"
+        Title="UpdateServerWindow" Height="300" Width="300">
+	<Grid DockPanel.Dock="Top" Margin="5">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition Width="*"/>
+		</Grid.ColumnDefinitions>
+
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*"/>
+		</Grid.RowDefinitions>
+
+		<StackPanel x:Name="UpdateServerBtn" Grid.Row="0">
+			<Button Content="Update Server" Click="Button_Click"/>
+		</StackPanel>
+
+		<TextBox x:Name="ConsoleTxt" Margin="5" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap"/>
+	</Grid>
+</Window>
