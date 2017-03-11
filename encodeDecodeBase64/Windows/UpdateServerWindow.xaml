@@ -17,7 +17,7 @@
 		</Grid.RowDefinitions>
 
 		<StackPanel x:Name="UpdateServerBtn" Grid.Row="0">
-			<Button Content="Update Server" Click="Button_Click"/>
+			<Button Content="Start update" Click="Button_Click"/>
 		</StackPanel>
 
 		<TextBox x:Name="ConsoleTxt" Margin="5" Grid.Row="1" AcceptsReturn="True" TextWrapping="Wrap"/>

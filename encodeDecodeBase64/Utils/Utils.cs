@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Security.Principal;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
+using System.Security;
 
 namespace encodeDecodeBase64
 {
@@ -23,6 +18,22 @@ namespace encodeDecodeBase64
 		public static string GetFullUserName()
 		{
 			return String.Format(@"{0}dom\{1}", Properties.Settings.Default["Servername"].ToString(), Properties.Settings.Default["Login"].ToString());
+		}
+
+		public static string GetPassword()
+		{
+			return Properties.Settings.Default["Password"].ToString();
+		}
+
+		public static SecureString GetSecuredPassword()
+		{
+			var secure = new SecureString();
+			foreach (char c in Properties.Settings.Default["Password"].ToString())
+			{
+				secure.AppendChar(c);
+			}
+
+			return secure;
 		}
 	}
 }

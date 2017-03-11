@@ -1,20 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using Microsoft.Win32;
-using System.IO;
 using encodeDecodeBase64.Windows;
+using System.IO;
+using System.Windows.Forms;
 
 namespace encodeDecodeBase64
 {
@@ -23,57 +11,15 @@ namespace encodeDecodeBase64
 	/// </summary>
 	public partial class MainWindow : Window
 	{
+		public CustomControlViewModel CustomControlViewModel { get; set; }
 		public MainWindow()
 		{
 			InitializeComponent();
 		}
-
-		private void CommonCommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
-		{
-			e.CanExecute = true;
-		}
-
-		private void EncodeBtn_Click(object sender, RoutedEventArgs e)
-		{
-			decodeTxt.Text = Base64Utils.Base64Encode(encodeTxt.Text);
-		}
-
-		private void DecodeBtn_Click(object sender, RoutedEventArgs e)
-		{
-			encodeTxt.Text = Base64Utils.Base64Decode(decodeTxt.Text);
-		}
-
-		private void ClearLeftBtn_Click(object sender, RoutedEventArgs e)
-		{
-			encodeTxt.Text = String.Empty;
-		}
-
-		private void ClearRightBtn_Click(object sender, RoutedEventArgs e)
-		{
-			decodeTxt.Text = String.Empty;
-		}
-
-		private void OpenLeftBtn_Click(object sender, RoutedEventArgs e)
-		{
-			OpenFileDialog openFileDialog = new OpenFileDialog();
-			if (openFileDialog.ShowDialog() == true)
-				encodeTxt.Text = File.ReadAllText(openFileDialog.FileName);
-		}
-
-		private void ClearAllBtn_Click(object sender, RoutedEventArgs e)
-		{
-			encodeTxt.Text = String.Empty;
-			decodeTxt.Text = String.Empty;
-		}
-
-		private void CopyToClipboardBtn_Click(object sender, RoutedEventArgs e)
-		{
-			Clipboard.SetText(decodeTxt.Text);
-		}
-
+		
 		private void MenuItem_Click(object sender, RoutedEventArgs e)
 		{
-			Application.Current.Shutdown();
+			System.Windows.Application.Current.Shutdown();
 		}
 
 		private void Window_Closed(object sender, EventArgs e)
@@ -87,10 +33,46 @@ namespace encodeDecodeBase64
 			win2.Show();
 		}
 
-		private void UpdateServerBtn_Click(object sender, RoutedEventArgs e)
+		private void MenuItem_Click_2(object sender, RoutedEventArgs e)
 		{
-			UpdateServerWindow updWnd = new UpdateServerWindow(decodeTxt.Text);
-			updWnd.Show();
+			Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
+			if (openFileDialog.ShowDialog() == true)
+			{
+				
+			}
+				//encodeTxt.Text = File.ReadAllText(openFileDialog.FileName);
+		}
+
+		private void MenuItem_Click_3(object sender, RoutedEventArgs e)
+		{
+			LoadFiles();
+		}
+
+		private void LoadFilesBtn_Click(object sender, RoutedEventArgs e)
+		{
+			LoadFiles();
+		}
+
+		private void LoadFiles()
+		{
+			using (var fbd = new FolderBrowserDialog())
+			{
+				System.Windows.Forms.DialogResult result = fbd.ShowDialog();
+
+				if (result == System.Windows.Forms.DialogResult.OK && !string.IsNullOrWhiteSpace(fbd.SelectedPath))
+				{
+					string[] files = Directory.GetFiles(fbd.SelectedPath, "*.js");
+					CustomControlViewModel = new CustomControlViewModel();
+					CustomControlViewModel.LoadCustomControls(files);
+					this.DataContext = CustomControlViewModel;
+				}
+			}
+		}
+
+		private void UploadBtn_Click(object sender, RoutedEventArgs e)
+		{
+			UpdateServerWindow upd = new UpdateServerWindow(CustomControlViewModel);
+			upd.Show();
 		}
 	}
 }
