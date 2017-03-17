@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using System.Management.Automation.Runspaces;
 using System.Linq;
 using System.Deployment.Application;
+using System.Collections.ObjectModel;
+using System.Security.Permissions;
 
 namespace encodeDecodeBase64
 {
@@ -98,10 +100,13 @@ namespace encodeDecodeBase64
 			ConsoleTxt.AppendText("Connecting to server " + Utils.GetServerFullName());
 			ConsoleTxt.AppendText(Environment.NewLine);
 
-			if (RunPsShell())
+			if (UpdateTrustedNosts())
 			{
-				RestartIis();
-			}
+				if (RunPsShell())
+				{
+					RestartIis();
+				}
+			}		
 		}
 
 
@@ -165,7 +170,7 @@ namespace encodeDecodeBase64
 		private Boolean RunPsShell()
 		{
 			try
-			{
+			{				
 				PSCredential credential = new PSCredential(Utils.GetFullUserName(), Utils.GetSecuredPassword());
 
 				WSManConnectionInfo connectionInfo = new WSManConnectionInfo(new Uri("http://" + Utils.GetServerFullName() + ":5985/wsman"), "http://schemas.microsoft.com/powershell/Microsoft.PowerShell", credential);
@@ -211,6 +216,45 @@ namespace encodeDecodeBase64
 				ConsoleTxt.AppendText(Environment.NewLine);
 
 				return true;
+			}
+			catch (Exception exeption)
+			{
+				ConsoleTxt.AppendText(exeption.Message);
+				ConsoleTxt.AppendText(Environment.NewLine);
+				return false;
+			}
+		}
+
+		private Boolean UpdateTrustedNosts()
+		{
+			try
+			{
+				using (PowerShell PowerShellInstance = PowerShell.Create())
+				{
+					var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"" + Utils.GetServerFullName() + "\" -Force";
+					//var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"*\" -Force";
+					PowerShellInstance.AddScript(script);
+					// invoke execution on the pipeline (collecting output)
+					var PSOutput = PowerShellInstance.Invoke();
+
+					// To check if a non terminating error has occurred, test the HadErrors property
+					if (PowerShellInstance.HadErrors)
+					{
+						// The documentation for the Error property states that "The command invoked by the PowerShell 
+						// object writes information to this stream whenever a nonterminating error occurs."
+						foreach (var error in PowerShellInstance.Streams.Error)
+						{
+							ConsoleTxt.AppendText("Error: " + error);
+							ConsoleTxt.AppendText(Environment.NewLine);
+						}
+
+						return false;
+					}
+					else
+					{
+						return true;
+					}
+				}
 			}
 			catch (Exception exeption)
 			{
