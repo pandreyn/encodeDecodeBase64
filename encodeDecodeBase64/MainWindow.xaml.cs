@@ -9,6 +9,7 @@ using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Management.Automation.Runspaces;
 using System.Linq;
+using System.Deployment.Application;
 
 namespace encodeDecodeBase64
 {
@@ -21,6 +22,10 @@ namespace encodeDecodeBase64
 		public MainWindow()
 		{
 			InitializeComponent();
+			if (ApplicationDeployment.IsNetworkDeployed)
+			{
+				this.Title = String.Format("{0} - v{1}", this.Title, ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString(4));
+			}
 		}
 		
 		private void MenuItem_Click(object sender, RoutedEventArgs e)
