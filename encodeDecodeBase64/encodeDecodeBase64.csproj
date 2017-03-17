@@ -24,9 +24,9 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <InstallUrl>https://1drv.ms/f/s!Av34-f4sV_GIyyII-rPgC2i_cNZ5/</InstallUrl>
+    <InstallUrl>https://raw.githubusercontent.com/pandreyn/encodeDecodeBase64/master/encodeDecodeBase64/publish/encodeDecodeBase64.application/</InstallUrl>
     <PublisherName>Andrey Petkevich</PublisherName>
-    <ApplicationRevision>4</ApplicationRevision>
+    <ApplicationRevision>5</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
