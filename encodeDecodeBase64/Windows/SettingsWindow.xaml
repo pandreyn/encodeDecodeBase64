@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:encodeDecodeBase64.Windows"
         mc:Ignorable="d"
-        Title="Settings" Width="367.576" d:DesignHeight="223.559" >
+        Title="Settings" Width="367.576" d:DesignHeight="197.204" >
 	<DockPanel>
 		<Grid DockPanel.Dock="Top" Margin="5">
 			<Grid.ColumnDefinitions>
@@ -15,7 +15,6 @@
 
 			<Grid.RowDefinitions>
 				<RowDefinition Height="Auto" />
-				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
 				<RowDefinition Height="Auto"/>
@@ -40,9 +39,6 @@
 			<TextBox x:Name="PwdTxt" Margin="5" Grid.Row="3" Grid.Column="1" 
 					 Text="{Binding Source={StaticResource Settings}, Path=Default.Password}"/>
 
-			<TextBlock Margin="5" Grid.Row="4" Grid.Column="0">CC file name:</TextBlock>
-			<TextBox x:Name="FileNameTxt" Margin="5" Grid.Row="4" Grid.Column="1" 
-					 Text="{Binding Source={StaticResource Settings}, Path=Default.Filename}"/>
 
 			<StackPanel Orientation="Horizontal" Margin="5" Grid.Row="5" Grid.Column="1" HorizontalAlignment="Right">
 				<Button Content="_Ok" IsDefault="True" Margin="5" x:Name="btnOk" Click="btnOk_Click" />

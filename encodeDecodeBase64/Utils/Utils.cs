@@ -35,5 +35,15 @@ namespace encodeDecodeBase64
 
 			return secure;
 		}
+
+		public static string GetLastPath()
+		{
+			return Properties.Settings.Default["LastPath"].ToString();
+		}
+
+		public static void SetLastPath(string path)
+		{
+			Properties.Settings.Default["LastPath"] = path;
+		}
 	}
 }

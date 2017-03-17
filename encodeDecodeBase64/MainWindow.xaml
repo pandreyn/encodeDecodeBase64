@@ -29,7 +29,7 @@
 			<ListView.View>
 				<GridView x:Name="GridView1">
 					<GridViewColumn DisplayMemberBinding= "{Binding Path=Name}" 
-                                Header="FileName" Width="100"/>
+                                Header="FileName" Width="200"/>
 					<GridViewColumn>
 						<GridViewColumn.CellTemplate>
 							<DataTemplate>
@@ -41,5 +41,6 @@
 				</GridView>
 			</ListView.View>
 		</ListView>
+		<TextBox x:Name="ConsoleTxt" Margin="5" AcceptsReturn="True" TextWrapping="Wrap"/>
 	</DockPanel>
 </Window>

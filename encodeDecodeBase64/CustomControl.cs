@@ -19,6 +19,14 @@ namespace encodeDecodeBase64
 				dt.Add(control);
 			}
 		}
+
+		public void ReloadContent()
+		{
+			foreach (var control in dt)
+			{
+				control.Content = File.ReadAllText(control.Path);
+			}
+		}
 	}
 	public class CustomControl
 	{
