@@ -10,8 +10,7 @@ using System.Threading.Tasks;
 using System.Management.Automation.Runspaces;
 using System.Linq;
 using System.Deployment.Application;
-using System.Collections.ObjectModel;
-using System.Security.Permissions;
+using System.Security.Principal;
 
 namespace encodeDecodeBase64
 {
@@ -93,20 +92,20 @@ namespace encodeDecodeBase64
 
 		private void UploadBtn_Click(object sender, RoutedEventArgs e)
 		{
-			CustomControlViewModel.ReloadContent();
+			if (CustomControlViewModel != null) CustomControlViewModel.ReloadContent();
 			ConsoleTxt.Clear();
 			ConsoleTxt.AppendText("Start.");
 			ConsoleTxt.AppendText(Environment.NewLine);
 			ConsoleTxt.AppendText("Connecting to server " + Utils.GetServerFullName());
 			ConsoleTxt.AppendText(Environment.NewLine);
 
-			if (UpdateTrustedNosts())
+			if (CheckTrustedHosts())
 			{
 				if (RunPsShell())
 				{
 					RestartIis();
 				}
-			}		
+			}
 		}
 
 
@@ -225,35 +224,96 @@ namespace encodeDecodeBase64
 			}
 		}
 
-		private Boolean UpdateTrustedNosts()
+		private Boolean UpdateTrustedNosts(string trustedHosts)
+		{
+			try
+			{
+				bool isElevated;
+				WindowsIdentity identity = WindowsIdentity.GetCurrent();
+				WindowsPrincipal principal = new WindowsPrincipal(identity);
+				isElevated = principal.IsInRole(WindowsBuiltInRole.Administrator);
+
+				if (isElevated)
+				{
+					using (PowerShell PowerShellInstance = PowerShell.Create())
+					{
+						var value = trustedHosts == "" ? Utils.GetServerFullName() : (trustedHosts + ", " + Utils.GetServerFullName());
+						var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"" + value + "\" -Force";
+						//var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"*\" -Force";
+						PowerShellInstance.AddScript(script);
+						PowerShellInstance.Invoke();
+
+						if (PowerShellInstance.Streams.Error.Count > 0)
+						{
+							foreach (var error in PowerShellInstance.Streams.Error)
+							{
+								ConsoleTxt.AppendText(error.ToString());
+								ConsoleTxt.AppendText(Environment.NewLine);
+								return false;
+							}
+						}
+
+						return CheckTrustedHosts();
+					}
+				}
+				else
+				{
+					ConsoleTxt.AppendText("You should restart the program with administratrion privileges to be able to add server to TrustedHosts");
+					ConsoleTxt.AppendText(Environment.NewLine);
+					ConsoleTxt.AppendText(Environment.NewLine);
+					return false;
+				}
+
+				
+			}
+			catch (Exception exeption)
+			{
+				ConsoleTxt.AppendText(exeption.Message);
+				ConsoleTxt.AppendText(Environment.NewLine);
+				return false;
+			}
+		}
+
+		private Boolean CheckTrustedHosts()
 		{
 			try
 			{
 				using (PowerShell PowerShellInstance = PowerShell.Create())
 				{
-					var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"" + Utils.GetServerFullName() + "\" -Force";
+					var script = @"get-item wsman:\localhost\Client\TrustedHosts";
 					//var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"*\" -Force";
 					PowerShellInstance.AddScript(script);
 					// invoke execution on the pipeline (collecting output)
 					var PSOutput = PowerShellInstance.Invoke();
 
-					// To check if a non terminating error has occurred, test the HadErrors property
-					if (PowerShellInstance.HadErrors)
+					ConsoleTxt.AppendText("Checking the server in TrustedHosts...");
+					ConsoleTxt.AppendText(Environment.NewLine);
+					var trustedHosts = PSOutput[0].Properties["Value"].Value.ToString();
+					var server = Utils.GetServerFullName();
+					if (trustedHosts.Contains(server))
 					{
-						// The documentation for the Error property states that "The command invoked by the PowerShell 
-						// object writes information to this stream whenever a nonterminating error occurs."
-						foreach (var error in PowerShellInstance.Streams.Error)
-						{
-							ConsoleTxt.AppendText("Error: " + error);
-							ConsoleTxt.AppendText(Environment.NewLine);
-						}
-
-						return false;
-					}
+						ConsoleTxt.AppendText("OK. The Server is in TrustedHosts.");
+						ConsoleTxt.AppendText(Environment.NewLine);
+						ConsoleTxt.AppendText(Environment.NewLine);
+					} 
 					else
 					{
-						return true;
+						ConsoleTxt.AppendText("ERROR. The Server is NOT in TrustedHosts!");
+						ConsoleTxt.AppendText(Environment.NewLine);
+						ConsoleTxt.AppendText(Environment.NewLine);
+						return UpdateTrustedNosts(trustedHosts);
 					}
+
+					if (PowerShellInstance.Streams.Error.Count > 0)
+					{
+						foreach (var error in PowerShellInstance.Streams.Error)
+						{
+							ConsoleTxt.AppendText(error.ToString());
+							ConsoleTxt.AppendText(Environment.NewLine);
+							return false;
+						}				
+					}
+					return true;
 				}
 			}
 			catch (Exception exeption)
