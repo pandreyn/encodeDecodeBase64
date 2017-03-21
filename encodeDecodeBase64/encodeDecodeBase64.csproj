@@ -27,7 +27,7 @@
     <InstallUrl>https://raw.githubusercontent.com/pandreyn/encodeDecodeBase64/master/encodeDecodeBase64/publish/</InstallUrl>
     <UpdateUrl>https://raw.githubusercontent.com/pandreyn/encodeDecodeBase64/master/encodeDecodeBase64/publish/</UpdateUrl>
     <PublisherName>Andrey Petkevich</PublisherName>
-    <ApplicationRevision>7</ApplicationRevision>
+    <ApplicationRevision>8</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
