@@ -47,12 +47,6 @@ namespace encodeDecodeBase64
 			Properties.Settings.Default.Save();
 		}
 
-		private void MenuItem_Click_1(object sender, RoutedEventArgs e)
-		{
-			SettingsWindow win2 = new SettingsWindow();
-			win2.Show();
-		}
-
 		private void MenuItem_Click_2(object sender, RoutedEventArgs e)
 		{
 			Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
@@ -330,6 +324,11 @@ namespace encodeDecodeBase64
 				ConsoleTxt.AppendText(Environment.NewLine);
 				return false;
 			}
+		}
+
+		private void btnSave_Click(object sender, RoutedEventArgs e)
+		{
+			Properties.Settings.Default.Save();
 		}
 	}
 }

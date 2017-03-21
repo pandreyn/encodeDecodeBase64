@@ -15,7 +15,6 @@
 			<MenuItem Header="_File">
 				<MenuItem Header="_Open File" Click="MenuItem_Click_2"/>
 				<MenuItem Header="_Open Folder" Click="MenuItem_Click_3" />
-				<MenuItem Header="Settings" Click="MenuItem_Click_1"/>
 				<MenuItem Header="_Close" Click="MenuItem_Click"/>
 			</MenuItem>
 		</Menu>
@@ -25,22 +24,75 @@
 				<Button x:Name="UploadBtn" Content="Upload" Click="UploadBtn_Click"  />
 			</ToolBar>
 		</ToolBarTray>
-		<ListView HorizontalAlignment="Stretch"	VerticalAlignment="Stretch" Margin="0,10,0,0" ItemsSource="{Binding dt}">
-			<ListView.View>
-				<GridView x:Name="GridView1">
-					<GridViewColumn DisplayMemberBinding= "{Binding Path=Name}" 
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition MinWidth="200" Width="250"/>
+				<ColumnDefinition MinWidth="100"/>
+			</Grid.ColumnDefinitions>
+
+			<ListView HorizontalAlignment="Stretch"	VerticalAlignment="Stretch" Margin="0,10,0,0" ItemsSource="{Binding dt}" Grid.Column="0">
+				<ListView.View>
+					<GridView x:Name="GridView1">
+						<GridViewColumn DisplayMemberBinding= "{Binding Path=Name}" 
                                 Header="FileName" Width="200"/>
-					<GridViewColumn>
-						<GridViewColumn.CellTemplate>
-							<DataTemplate>
-								<CheckBox IsChecked="{Binding shouldLoad}"/>
-							</DataTemplate>
-						</GridViewColumn.CellTemplate>
-						Load?
-					</GridViewColumn>
-				</GridView>
-			</ListView.View>
-		</ListView>
-		<TextBox x:Name="ConsoleTxt" Margin="5" AcceptsReturn="True" TextWrapping="Wrap"/>
+						<GridViewColumn>
+							<GridViewColumn.CellTemplate>
+								<DataTemplate>
+									<CheckBox IsChecked="{Binding shouldLoad}"/>
+								</DataTemplate>
+							</GridViewColumn.CellTemplate>
+							Load?
+						</GridViewColumn>
+					</GridView>
+				</ListView.View>
+			</ListView>
+			<GridSplitter Width="6"/>
+			<DockPanel Margin="5" Grid.Column="1">
+				<Expander DockPanel.Dock="Top" BorderBrush="DarkGray" Header="Settings" Margin="5">
+					<DockPanel>
+						<Grid DockPanel.Dock="Top" Margin="5">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto"/>
+								<ColumnDefinition Width="*"/>
+							</Grid.ColumnDefinitions>
+
+							<Grid.RowDefinitions>
+								<RowDefinition Height="Auto" />
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+								<RowDefinition Height="Auto"/>
+							</Grid.RowDefinitions>
+
+
+							<TextBlock Margin="5" Grid.Row="0" Grid.Column="0">Server name:</TextBlock>
+							<TextBox x:Name="ServerNameTxt" Margin="5" Grid.Row="0" Grid.Column="1" 
+					 Text="{Binding Source={StaticResource Settings}, Path=Default.Servername}"/>
+
+
+							<TextBlock Margin="5" Grid.Row="1" Grid.Column="0">Org name:</TextBlock>
+							<TextBox x:Name="OrgNameTxt" Margin="5" Grid.Row="1" Grid.Column="1"
+					 Text="{Binding Source={StaticResource Settings}, Path=Default.Orgname}"/>
+
+							<TextBlock Margin="5" Grid.Row="2" Grid.Column="0">Login:</TextBlock>
+							<TextBox x:Name="LoginTxt" Margin="5" Grid.Row="2" Grid.Column="1" 
+					 Text="{Binding Source={StaticResource Settings}, Path=Default.Login}"/>
+
+							<TextBlock Margin="5" Grid.Row="3" Grid.Column="0">Password:</TextBlock>
+							<TextBox x:Name="PwdTxt" Margin="5" Grid.Row="3" Grid.Column="1" 
+					 Text="{Binding Source={StaticResource Settings}, Path=Default.Password}"/>
+
+
+							<StackPanel Orientation="Horizontal" Margin="5" Grid.Row="5" Grid.Column="1" HorizontalAlignment="Right">
+								<TextBlock x:Name="SaveState" ></TextBlock>
+								<Button Content="_Save" IsDefault="True" Margin="5" x:Name="btnSave" Click="btnSave_Click" />
+							</StackPanel>
+						</Grid>
+
+					</DockPanel>
+				</Expander>
+				<TextBox x:Name="ConsoleTxt" Margin="5" AcceptsReturn="True" TextWrapping="Wrap" />
+			</DockPanel>
+		</Grid>
 	</DockPanel>
 </Window>

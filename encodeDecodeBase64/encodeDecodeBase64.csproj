@@ -111,9 +111,6 @@
     <Compile Include="Windows\ConvertFile.xaml.cs">
       <DependentUpon>ConvertFile.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Windows\SettingsWindow.xaml.cs">
-      <DependentUpon>SettingsWindow.xaml</DependentUpon>
-    </Compile>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -127,10 +124,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Windows\ConvertFile.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\SettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
