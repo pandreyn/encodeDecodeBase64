@@ -27,7 +27,7 @@
     <InstallUrl>https://raw.githubusercontent.com/pandreyn/encodeDecodeBase64/master/encodeDecodeBase64/publish/</InstallUrl>
     <UpdateUrl>https://raw.githubusercontent.com/pandreyn/encodeDecodeBase64/master/encodeDecodeBase64/publish/</UpdateUrl>
     <PublisherName>Andrey Petkevich</PublisherName>
-    <ApplicationRevision>9</ApplicationRevision>
+    <ApplicationRevision>11</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -70,6 +70,9 @@
   <PropertyGroup />
   <PropertyGroup>
     <TargetZone>LocalIntranet</TargetZone>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -152,6 +155,7 @@
     </EmbeddedResource>
     <None Include="encodeDecodeBase64_TemporaryKey.pfx" />
     <None Include="packages.config" />
+    <None Include="Properties\app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
