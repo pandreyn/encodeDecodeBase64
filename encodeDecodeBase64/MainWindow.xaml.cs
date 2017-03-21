@@ -23,9 +23,17 @@ namespace encodeDecodeBase64
 		public MainWindow()
 		{
 			InitializeComponent();
-			if (ApplicationDeployment.IsNetworkDeployed)
+			try
 			{
-				this.Title = String.Format("{0} - v{1}", this.Title, ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString(4));
+				if (ApplicationDeployment.IsNetworkDeployed)
+				{
+					this.Title = String.Format("{0} - v{1}", this.Title, ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString(4));
+				}
+			}
+			catch (Exception exeption)
+			{
+				ConsoleTxt.AppendText(exeption.Message);
+				ConsoleTxt.AppendText(Environment.NewLine);
 			}
 		}
 		
