@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 
 namespace encodeDecodeBase64
 {
@@ -27,6 +28,17 @@ namespace encodeDecodeBase64
 				control.Content = File.ReadAllText(control.Path);
 			}
 		}
+
+		public bool IsEmpty()
+		{
+			return (dt == null) || (dt.Count == 0);
+		}
+
+		public bool HasSelectedRecords()
+		{
+			return !this.IsEmpty() && (this.dt.Count(x => x.shouldLoad == true) > 0);
+		}
+
 	}
 	public class CustomControl
 	{

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows;
-using encodeDecodeBase64.Windows;
 using System.IO;
 using System.Windows.Forms;
 using System.Management.Automation;
@@ -11,6 +10,8 @@ using System.Management.Automation.Runspaces;
 using System.Linq;
 using System.Deployment.Application;
 using System.Security.Principal;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace encodeDecodeBase64
 {
@@ -19,7 +20,10 @@ namespace encodeDecodeBase64
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-		public CustomControlViewModel CustomControlViewModel { get; set; }
+		private AppSettings _settings = new AppSettings();
+		private CustomControlViewModel _customControlViewModel = new CustomControlViewModel();
+		private int _noOfErrorsOnScreen = 0;
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -35,31 +39,36 @@ namespace encodeDecodeBase64
 				ConsoleTxt.AppendText(exeption.Message);
 				ConsoleTxt.AppendText(Environment.NewLine);
 			}
+
+			this.DataContext = _customControlViewModel;
+			SettingsGrig.DataContext = _settings;
 		}
-		
-		private void MenuItem_Click(object sender, RoutedEventArgs e)
+
+		private void Validation_Error(object sender, ValidationErrorEventArgs e)
 		{
-			System.Windows.Application.Current.Shutdown();
+			if (e.Action == ValidationErrorEventAction.Added)
+				_noOfErrorsOnScreen++;
+			else
+				_noOfErrorsOnScreen--;
+
+			UpdateExpanderStyle();
+		}
+
+		private void UpdateExpanderStyle()
+		{
+			if (_noOfErrorsOnScreen > 0)
+			{
+				SettingsExpd.BorderBrush = System.Windows.Media.Brushes.Red;
+			}
+			else
+			{
+				SettingsExpd.BorderBrush = System.Windows.Media.Brushes.Transparent;
+			}
 		}
 
 		private void Window_Closed(object sender, EventArgs e)
 		{
-			Properties.Settings.Default.Save();
-		}
-
-		private void MenuItem_Click_2(object sender, RoutedEventArgs e)
-		{
-			Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog();
-			if (openFileDialog.ShowDialog() == true)
-			{
-				
-			}
-				//encodeTxt.Text = File.ReadAllText(openFileDialog.FileName);
-		}
-
-		private void MenuItem_Click_3(object sender, RoutedEventArgs e)
-		{
-			LoadFiles();
+			_settings.SaveSettings();
 		}
 
 		private void LoadFilesBtn_Click(object sender, RoutedEventArgs e)
@@ -85,20 +94,18 @@ namespace encodeDecodeBase64
 						Utils.SetLastPath(fbd.SelectedPath);
 					}
 					string[] files = Directory.GetFiles(fbd.SelectedPath, "*.js");
-					CustomControlViewModel = new CustomControlViewModel();
-					CustomControlViewModel.LoadCustomControls(files);
-					this.DataContext = CustomControlViewModel;
+					_customControlViewModel.LoadCustomControls(files);
 				}
 			}
 		}
 
-		private void UploadBtn_Click(object sender, RoutedEventArgs e)
+		private void UploadCommand_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
-			if (CustomControlViewModel != null) CustomControlViewModel.ReloadContent();
+			if (!_customControlViewModel.IsEmpty()) _customControlViewModel.ReloadContent();
 			ConsoleTxt.Clear();
 			ConsoleTxt.AppendText("Start.");
 			ConsoleTxt.AppendText(Environment.NewLine);
-			ConsoleTxt.AppendText("Connecting to server " + Utils.GetServerFullName());
+			ConsoleTxt.AppendText("Connecting to server " + Utils.GetServerNameFull());
 			ConsoleTxt.AppendText(Environment.NewLine);
 
 			if (CheckTrustedHosts())
@@ -110,16 +117,15 @@ namespace encodeDecodeBase64
 			}
 		}
 
-
 		private void RestartIis()
 		{
 			try
 			{
-				var serverName = Utils.GetServerFullName();
+				var serverName = Utils.GetServerNameFull();
 
 				ConnectionOptions options = new ConnectionOptions();
-				options.Password = Properties.Settings.Default["Password"].ToString();
-				options.Username = Utils.GetFullUserName();
+				options.Password = Utils.GetPassword();
+				options.Username = Utils.GetUserNameFull();
 				options.Impersonation = ImpersonationLevel.Impersonate;
 
 				// Make a connection to a remote computer. 
@@ -172,9 +178,9 @@ namespace encodeDecodeBase64
 		{
 			try
 			{				
-				PSCredential credential = new PSCredential(Utils.GetFullUserName(), Utils.GetSecuredPassword());
+				PSCredential credential = new PSCredential(Utils.GetUserNameFull(), Utils.GetSecuredPassword());
 
-				WSManConnectionInfo connectionInfo = new WSManConnectionInfo(new Uri("http://" + Utils.GetServerFullName() + ":5985/wsman"), "http://schemas.microsoft.com/powershell/Microsoft.PowerShell", credential);
+				WSManConnectionInfo connectionInfo = new WSManConnectionInfo(new Uri("http://" + Utils.GetServerNameFull() + ":5985/wsman"), "http://schemas.microsoft.com/powershell/Microsoft.PowerShell", credential);
 				connectionInfo.AuthenticationMechanism = AuthenticationMechanism.Default;
 
 				Runspace runspace = RunspaceFactory.CreateRunspace(connectionInfo);
@@ -182,8 +188,7 @@ namespace encodeDecodeBase64
 
 				using (PowerShell ps = PowerShell.Create())
 				{
-					string fileName = Properties.Settings.Default["Filename"].ToString();
-					string orgName = Properties.Settings.Default["Orgname"].ToString();
+					string orgName = Utils.GetOrgName();
 
 					ConsoleTxt.AppendText("Updating control in sql database...");
 					ConsoleTxt.AppendText(Environment.NewLine);
@@ -191,7 +196,7 @@ namespace encodeDecodeBase64
 					ps.Runspace = runspace;
 					Pipeline pipeline = runspace.CreatePipeline();
 
-					foreach (var control in CustomControlViewModel.dt.Where(x => x.shouldLoad == true))
+					foreach (var control in _customControlViewModel.dt.Where(x => x.shouldLoad == true))
 					{
 						ConsoleTxt.AppendText("Updating file " + control.Name + "...");
 						ConsoleTxt.AppendText(Environment.NewLine);
@@ -239,9 +244,8 @@ namespace encodeDecodeBase64
 				{
 					using (PowerShell PowerShellInstance = PowerShell.Create())
 					{
-						var value = trustedHosts == "" ? Utils.GetServerFullName() : (trustedHosts + ", " + Utils.GetServerFullName());
+						var value = trustedHosts == "" ? Utils.GetServerNameFull() : (trustedHosts + ", " + Utils.GetServerNameFull());
 						var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"" + value + "\" -Force";
-						//var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"*\" -Force";
 						PowerShellInstance.AddScript(script);
 						PowerShellInstance.Invoke();
 
@@ -283,15 +287,13 @@ namespace encodeDecodeBase64
 				using (PowerShell PowerShellInstance = PowerShell.Create())
 				{
 					var script = @"get-item wsman:\localhost\Client\TrustedHosts";
-					//var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"*\" -Force";
 					PowerShellInstance.AddScript(script);
-					// invoke execution on the pipeline (collecting output)
 					var PSOutput = PowerShellInstance.Invoke();
 
 					ConsoleTxt.AppendText("Checking the server in TrustedHosts...");
 					ConsoleTxt.AppendText(Environment.NewLine);
 					var trustedHosts = PSOutput[0].Properties["Value"].Value.ToString();
-					var server = Utils.GetServerFullName();
+					var server = Utils.GetServerNameFull();
 					if (trustedHosts.Contains(server))
 					{
 						ConsoleTxt.AppendText("OK. The Server is in TrustedHosts.");
@@ -328,7 +330,14 @@ namespace encodeDecodeBase64
 
 		private void btnSave_Click(object sender, RoutedEventArgs e)
 		{
-			Properties.Settings.Default.Save();
+			_settings.SaveSettings();
+		}
+
+		private void UploadCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			var canExecute = !_settings.IsNotFull() && _customControlViewModel.HasSelectedRecords();
+			e.CanExecute = canExecute && (_noOfErrorsOnScreen == 0);
+			e.Handled = true;
 		}
 	}
 }
