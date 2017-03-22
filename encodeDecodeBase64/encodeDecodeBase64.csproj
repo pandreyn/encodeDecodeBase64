@@ -14,7 +14,7 @@
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <IsWebBootstrapper>true</IsWebBootstrapper>
-    <PublishUrl>https://raw.githubusercontent.com/pandreyn/encodeDecodeBase64/master/encodeDecodeBase64/publish/</PublishUrl>
+    <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
@@ -27,7 +27,7 @@
     <InstallUrl>https://raw.githubusercontent.com/pandreyn/encodeDecodeBase64/master/encodeDecodeBase64/publish/</InstallUrl>
     <UpdateUrl>https://raw.githubusercontent.com/pandreyn/encodeDecodeBase64/master/encodeDecodeBase64/publish/</UpdateUrl>
     <PublisherName>Andrey Petkevich</PublisherName>
-    <ApplicationRevision>13</ApplicationRevision>
+    <ApplicationRevision>14</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>

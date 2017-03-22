@@ -40,7 +40,7 @@ namespace encodeDecodeBase64
 				ConsoleTxt.AppendText(Environment.NewLine);
 			}
 
-			this.DataContext = _customControlViewModel;
+			this.DataContext = _customControlViewModel.dt;
 			SettingsGrig.DataContext = _settings;
 		}
 
@@ -62,7 +62,7 @@ namespace encodeDecodeBase64
 			}
 			else
 			{
-				SettingsExpd.BorderBrush = System.Windows.Media.Brushes.Transparent;
+				SettingsExpd.BorderBrush = System.Windows.Media.Brushes.DarkGray;
 			}
 		}
 
@@ -94,7 +94,10 @@ namespace encodeDecodeBase64
 						Utils.SetLastPath(fbd.SelectedPath);
 					}
 					string[] files = Directory.GetFiles(fbd.SelectedPath, "*.js");
+					
+					_customControlViewModel = new CustomControlViewModel();
 					_customControlViewModel.LoadCustomControls(files);
+					this.DataContext = _customControlViewModel;
 				}
 			}
 		}
@@ -231,7 +234,7 @@ namespace encodeDecodeBase64
 			}
 		}
 
-		private Boolean UpdateTrustedNosts(string trustedHosts)
+		private Boolean UpdateTrustedHosts(string trustedHosts)
 		{
 			try
 			{
@@ -305,7 +308,7 @@ namespace encodeDecodeBase64
 						ConsoleTxt.AppendText("ERROR. The Server is NOT in TrustedHosts!");
 						ConsoleTxt.AppendText(Environment.NewLine);
 						ConsoleTxt.AppendText(Environment.NewLine);
-						return UpdateTrustedNosts(trustedHosts);
+						return UpdateTrustedHosts(trustedHosts);
 					}
 
 					if (PowerShellInstance.Streams.Error.Count > 0)
