@@ -46,7 +46,7 @@
 			</ListView>
 			<GridSplitter Width="6"/>
 			<DockPanel Margin="5" Grid.Column="1">
-				<Expander x:Name="SettingsExpd" DockPanel.Dock="Top" Header="Settings" Margin="5">
+				<Expander x:Name="SettingsExpd" BorderBrush="DarkGray" DockPanel.Dock="Top" Header="Settings" Margin="5">
 					<DockPanel>
 						<AdornerDecorator>
 							<Grid x:Name="SettingsGrig" DockPanel.Dock="Top" Margin="5">
