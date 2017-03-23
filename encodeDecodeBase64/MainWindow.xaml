@@ -102,7 +102,7 @@
 						</AdornerDecorator>
 					</DockPanel>
 				</Expander>
-				<TextBox x:Name="ConsoleTxt" Margin="5" AcceptsReturn="True" TextWrapping="Wrap" />
+				<TextBox x:Name="ConsoleTxt" Margin="5" AcceptsReturn="True" TextWrapping="Wrap" IsReadOnly="True"/>
 			</DockPanel>
 		</Grid>
 	</DockPanel>
