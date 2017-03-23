@@ -102,7 +102,18 @@ namespace encodeDecodeBase64
 			}
 		}
 
-		private void UploadCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+		private void OnProgress(IProgress<TaskAsyncProgress> progress, string text)
+		{
+			if (progress != null)
+			{
+				var args = new TaskAsyncProgress();
+				args.Text = text;
+
+				progress.Report(args);
+			}
+		}
+
+		private async void UploadCommand_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
 			if (!_customControlViewModel.IsEmpty()) _customControlViewModel.ReloadContent();
 			ConsoleTxt.Clear();
@@ -111,118 +122,69 @@ namespace encodeDecodeBase64
 			ConsoleTxt.AppendText("Connecting to server " + Utils.GetServerNameFull());
 			ConsoleTxt.AppendText(Environment.NewLine);
 
-			if (CheckTrustedHosts())
+			UploadBtn.IsEnabled = false;
+			var progress = new Progress<TaskAsyncProgress>();
+			progress.ProgressChanged += (p, s) =>
 			{
-				if (RunPsShell())
+				ConsoleTxt.AppendText(s.Text);
+				ConsoleTxt.AppendText(Environment.NewLine);
+			};
+
+			var chk = await CheckTrustedHosts(progress);
+			if (chk)
+			{
+				var psh = await RunPsShell(progress);
+				if (psh)
 				{
-					RestartIis();
+					var restart = await RestartIis(progress);
 				}
 			}
+			
+			ConsoleTxt.AppendText("OK. Update completed!");
+			ConsoleTxt.AppendText(Environment.NewLine);
+			UploadBtn.IsEnabled = true;
 		}
 
-		private void RestartIis()
+		private async Task<Boolean> RestartIis(IProgress<TaskAsyncProgress> progress)
 		{
 			try
 			{
-				var serverName = Utils.GetServerNameFull();
-
-				ConnectionOptions options = new ConnectionOptions();
-				options.Password = Utils.GetPassword();
-				options.Username = Utils.GetUserNameFull();
-				options.Impersonation = ImpersonationLevel.Impersonate;
-
-				// Make a connection to a remote computer. 
-				// Replace the "FullComputerName" section of the
-				// string "\\\\FullComputerName\\root\\cimv2" with
-				// the full computer name or IP address of the 
-				// remote computer.
-				var remoteComputer = "\\\\" + serverName + "\\root\\cimv2";
-				ManagementScope scope =
-					new ManagementScope(remoteComputer, options);
-				scope.Connect();
-
-				ServiceController sc = new ServiceController("IISADMIN", serverName);
-
-				ConsoleTxt.AppendText("Status = " + sc.Status);
-				ConsoleTxt.AppendText(Environment.NewLine);
-				ConsoleTxt.AppendText("Stopping " + sc.DisplayName);
-				ConsoleTxt.AppendText(Environment.NewLine);
-				sc.Stop();
-				while (sc.Status != ServiceControllerStatus.Stopped)
+				OnProgress(progress, "Restarting IIS...");
+				await Task.Run(() =>
 				{
-					Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-					sc.Refresh();
-					ConsoleTxt.AppendText("Waiting to stop... ");
-					ConsoleTxt.AppendText(Environment.NewLine);
-				}
-				ConsoleTxt.AppendText("Status = " + sc.Status);
-				ConsoleTxt.AppendText(Environment.NewLine);
-				sc.Start();
-				while (sc.Status == ServiceControllerStatus.Stopped)
-				{
-					Task.Delay(TimeSpan.FromSeconds(1)).Wait();
-					sc.Refresh();
-					ConsoleTxt.AppendText("Waiting to start... ");
-					ConsoleTxt.AppendText(Environment.NewLine);
-				}
-				ConsoleTxt.AppendText("Status = " + sc.Status);
-				ConsoleTxt.AppendText(Environment.NewLine);
-				ConsoleTxt.AppendText(Environment.NewLine);
-				ConsoleTxt.AppendText(Environment.NewLine);
-			}
-			catch (Exception exeption)
-			{
-				ConsoleTxt.AppendText(exeption.Message);
-				ConsoleTxt.AppendText(Environment.NewLine);
-			}
-		}
+					var serverName = Utils.GetServerNameFull();
 
-		private Boolean RunPsShell()
-		{
-			try
-			{				
-				PSCredential credential = new PSCredential(Utils.GetUserNameFull(), Utils.GetSecuredPassword());
+					ConnectionOptions options = new ConnectionOptions();
+					options.Password = Utils.GetPassword();
+					options.Username = Utils.GetUserNameFull();
+					options.Impersonation = ImpersonationLevel.Impersonate;
 
-				WSManConnectionInfo connectionInfo = new WSManConnectionInfo(new Uri("http://" + Utils.GetServerNameFull() + ":5985/wsman"), "http://schemas.microsoft.com/powershell/Microsoft.PowerShell", credential);
-				connectionInfo.AuthenticationMechanism = AuthenticationMechanism.Default;
+					var remoteComputer = "\\\\" + serverName + "\\root\\cimv2";
+					ManagementScope scope = new ManagementScope(remoteComputer, options);
+					scope.Connect();
 
-				Runspace runspace = RunspaceFactory.CreateRunspace(connectionInfo);
-				runspace.Open();
+					ServiceController sc = new ServiceController("IISADMIN", serverName);
 
-				using (PowerShell ps = PowerShell.Create())
-				{
-					string orgName = Utils.GetOrgName();
-
-					ConsoleTxt.AppendText("Updating control in sql database...");
-					ConsoleTxt.AppendText(Environment.NewLine);
-
-					ps.Runspace = runspace;
-					Pipeline pipeline = runspace.CreatePipeline();
-
-					foreach (var control in _customControlViewModel.dt.Where(x => x.shouldLoad == true))
+					OnProgress(progress, "IIS Status = " + sc.Status);
+					OnProgress(progress, "Stopping " + sc.DisplayName);
+					sc.Stop();
+					while (sc.Status != ServiceControllerStatus.Stopped)
 					{
-						ConsoleTxt.AppendText("Updating file " + control.Name + "...");
-						ConsoleTxt.AppendText(Environment.NewLine);
-						string queryString =
-							"UPDATE [" + orgName + "_MSCRM].[dbo].[WebResourceBase] SET [Content] = '" + Base64Utils.Base64Encode(control.Content) +
-							"' WHERE[Name] like '%" + control.Name + "%'";
-						pipeline.Commands.AddScript("Invoke-Sqlcmd -Query \"" + queryString + "\" -Verbose");
-
+						Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+						sc.Refresh();
+						OnProgress(progress, "Waiting to stop... ");
 					}
-
-					var results = pipeline.Invoke();
-
-					foreach (var item in results)
+					OnProgress(progress, "IIS Stopped. Status = " + sc.Status);
+					OnProgress(progress, "IIS starting...");
+					sc.Start();
+					while (sc.Status == ServiceControllerStatus.Stopped)
 					{
-						ConsoleTxt.AppendText(String.Format("Output: {0}", item));
-						ConsoleTxt.AppendText(Environment.NewLine);
+						Task.Delay(TimeSpan.FromSeconds(1)).Wait();
+						sc.Refresh();
+						OnProgress(progress, "Waiting to start... ");
 					}
-
-				}
-				runspace.Close();
-
-				ConsoleTxt.AppendText("Updated successfully.");
-				ConsoleTxt.AppendText(Environment.NewLine);
+					OnProgress(progress, "IIS Started. Status = " + sc.Status);
+				});
 
 				return true;
 			}
@@ -234,10 +196,65 @@ namespace encodeDecodeBase64
 			}
 		}
 
-		private Boolean UpdateTrustedHosts(string trustedHosts)
+		private async Task<Boolean> RunPsShell(IProgress<TaskAsyncProgress> progress)
 		{
 			try
 			{
+				OnProgress(progress, "Updating control in sql database...");
+				await Task.Run(() =>
+				{
+					PSCredential credential = new PSCredential(Utils.GetUserNameFull(), Utils.GetSecuredPassword());
+
+					WSManConnectionInfo connectionInfo = new WSManConnectionInfo(new Uri("http://" + Utils.GetServerNameFull() + ":5985/wsman"), "http://schemas.microsoft.com/powershell/Microsoft.PowerShell", credential);
+					connectionInfo.AuthenticationMechanism = AuthenticationMechanism.Default;
+
+					Runspace runspace = RunspaceFactory.CreateRunspace(connectionInfo);
+					runspace.Open();
+
+					using (PowerShell ps = PowerShell.Create())
+					{
+						string orgName = Utils.GetOrgName();						
+
+						ps.Runspace = runspace;
+						Pipeline pipeline = runspace.CreatePipeline();
+
+						foreach (var control in _customControlViewModel.dt.Where(x => x.shouldLoad == true))
+						{
+							OnProgress(progress, "Updating file " + control.Name + "...");
+							string queryString =
+								"UPDATE [" + orgName + "_MSCRM].[dbo].[WebResourceBase] SET [Content] = '" + Base64Utils.Base64Encode(control.Content) +
+								"' WHERE[Name] like '%" + control.Name + "%'";
+							pipeline.Commands.AddScript("Invoke-Sqlcmd -Query \"" + queryString + "\" -Verbose");
+
+						}
+
+						var results = pipeline.Invoke();
+
+						foreach (var item in results)
+						{
+							OnProgress(progress, String.Format("Output: {0}", item));
+						}
+
+					}
+					runspace.Close();
+
+					OnProgress(progress, "Updated successfully.");
+				});
+
+				return true;
+			}
+			catch (Exception exeption)
+			{
+				OnProgress(progress, exeption.Message);
+				return false;
+			}
+		}
+
+		private async Task<Boolean> UpdateTrustedHosts(IProgress<TaskAsyncProgress> progress, string trustedHosts)
+		{
+			try
+			{
+				OnProgress(progress, "Updating TrustedHosts...");
 				bool isElevated;
 				WindowsIdentity identity = WindowsIdentity.GetCurrent();
 				WindowsPrincipal principal = new WindowsPrincipal(identity);
@@ -247,29 +264,30 @@ namespace encodeDecodeBase64
 				{
 					using (PowerShell PowerShellInstance = PowerShell.Create())
 					{
-						var value = trustedHosts == "" ? Utils.GetServerNameFull() : (trustedHosts + ", " + Utils.GetServerNameFull());
-						var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"" + value + "\" -Force";
-						PowerShellInstance.AddScript(script);
-						PowerShellInstance.Invoke();
-
+						await Task.Run(() =>
+						{
+							var value = trustedHosts == "" ? Utils.GetServerNameFull() : (trustedHosts + ", " + Utils.GetServerNameFull());
+							var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"" + value + "\" -Force";
+							PowerShellInstance.AddScript(script);
+							PowerShellInstance.Invoke();
+						});
+						
 						if (PowerShellInstance.Streams.Error.Count > 0)
 						{
 							foreach (var error in PowerShellInstance.Streams.Error)
 							{
-								ConsoleTxt.AppendText(error.ToString());
-								ConsoleTxt.AppendText(Environment.NewLine);
+								OnProgress(progress, error.ToString());
 								return false;
 							}
 						}
 
-						return CheckTrustedHosts();
+						var result = await CheckTrustedHosts(progress);
+						return result;
 					}
 				}
 				else
 				{
-					ConsoleTxt.AppendText("You should restart the program with administratrion privileges to be able to add server to TrustedHosts");
-					ConsoleTxt.AppendText(Environment.NewLine);
-					ConsoleTxt.AppendText(Environment.NewLine);
+					OnProgress(progress, "You should restart the program with administratrion privileges to be able to add server to TrustedHosts");
 					return false;
 				}
 
@@ -283,40 +301,35 @@ namespace encodeDecodeBase64
 			}
 		}
 
-		private Boolean CheckTrustedHosts()
+		private async Task<Boolean> CheckTrustedHosts(IProgress<TaskAsyncProgress> progress)
 		{
 			try
 			{
+				OnProgress(progress, "Checking the server in TrustedHosts...");
 				using (PowerShell PowerShellInstance = PowerShell.Create())
 				{
 					var script = @"get-item wsman:\localhost\Client\TrustedHosts";
 					PowerShellInstance.AddScript(script);
 					var PSOutput = PowerShellInstance.Invoke();
-
-					ConsoleTxt.AppendText("Checking the server in TrustedHosts...");
-					ConsoleTxt.AppendText(Environment.NewLine);
+					
 					var trustedHosts = PSOutput[0].Properties["Value"].Value.ToString();
 					var server = Utils.GetServerNameFull();
 					if (trustedHosts.Contains(server))
 					{
-						ConsoleTxt.AppendText("OK. The Server is in TrustedHosts.");
-						ConsoleTxt.AppendText(Environment.NewLine);
-						ConsoleTxt.AppendText(Environment.NewLine);
+						OnProgress(progress, "OK. The Server is in TrustedHosts.");
 					} 
 					else
 					{
-						ConsoleTxt.AppendText("ERROR. The Server is NOT in TrustedHosts!");
-						ConsoleTxt.AppendText(Environment.NewLine);
-						ConsoleTxt.AppendText(Environment.NewLine);
-						return UpdateTrustedHosts(trustedHosts);
+						OnProgress(progress, "ERROR. The Server is NOT in TrustedHosts!");
+						var result = await UpdateTrustedHosts(progress, trustedHosts);
+						return result;
 					}
 
 					if (PowerShellInstance.Streams.Error.Count > 0)
 					{
 						foreach (var error in PowerShellInstance.Streams.Error)
 						{
-							ConsoleTxt.AppendText(error.ToString());
-							ConsoleTxt.AppendText(Environment.NewLine);
+							OnProgress(progress, error.ToString());
 							return false;
 						}				
 					}
@@ -325,8 +338,7 @@ namespace encodeDecodeBase64
 			}
 			catch (Exception exeption)
 			{
-				ConsoleTxt.AppendText(exeption.Message);
-				ConsoleTxt.AppendText(Environment.NewLine);
+				OnProgress(progress, exeption.Message);
 				return false;
 			}
 		}

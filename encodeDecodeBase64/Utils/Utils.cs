@@ -76,4 +76,10 @@ namespace encodeDecodeBase64
 			Properties.Settings.Default["LastPath"] = path;
 		}
 	}
+
+	public class TaskAsyncProgress
+	{
+		public int ProgressPercentage { get; set; }
+		public string Text { get; set; }
+	}
 }
