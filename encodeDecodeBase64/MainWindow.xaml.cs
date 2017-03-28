@@ -12,6 +12,8 @@ using System.Deployment.Application;
 using System.Security.Principal;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Diagnostics;
+using System.Reflection;
 
 namespace encodeDecodeBase64
 {
@@ -139,7 +141,7 @@ namespace encodeDecodeBase64
 					var restart = await RestartIis(progress);
 				}
 			}
-			
+
 			ConsoleTxt.AppendText("OK. Update completed!");
 			ConsoleTxt.AppendText(Environment.NewLine);
 			UploadBtn.IsEnabled = true;
@@ -250,6 +252,41 @@ namespace encodeDecodeBase64
 			}
 		}
 
+		private void RestartEvasluated()
+		{
+			var wi = WindowsIdentity.GetCurrent();
+			var wp = new WindowsPrincipal(wi);
+
+			bool runAsAdmin = wp.IsInRole(WindowsBuiltInRole.Administrator);
+
+			if (!runAsAdmin)
+			{
+				// It is not possible to launch a ClickOnce app as administrator directly,
+				// so instead we launch the app as administrator in a new process.
+				var processInfo = new ProcessStartInfo(Assembly.GetExecutingAssembly().CodeBase);
+
+				// The following properties run the new process as administrator
+				processInfo.UseShellExecute = true;
+				processInfo.Verb = "runas";
+
+				// Start the new process
+				try
+				{
+					Process.Start(processInfo);
+				}
+				catch (Exception)
+				{
+					// The user did not allow the application to run as administrator
+					var message = "Sorry, but I don't seem to be able to start  this program with administrator rights!";
+					ConsoleTxt.AppendText(message);
+					ConsoleTxt.AppendText(Environment.NewLine);
+				}
+
+				// Shut down the current process
+				System.Windows.Application.Current.Shutdown();
+			}
+		}
+
 		private async Task<Boolean> UpdateTrustedHosts(IProgress<TaskAsyncProgress> progress, string trustedHosts)
 		{
 			try
@@ -266,12 +303,12 @@ namespace encodeDecodeBase64
 					{
 						await Task.Run(() =>
 						{
-							var value = trustedHosts == "" ? Utils.GetServerNameFull() : (trustedHosts + ", " + Utils.GetServerNameFull());
-							var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"" + value + "\" -Force";
+							string value = trustedHosts == "" ? Utils.GetServerNameFull() : (trustedHosts + ", " + Utils.GetServerNameFull());
+							var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"" + value.ToLower() + "\" -Force";
 							PowerShellInstance.AddScript(script);
 							PowerShellInstance.Invoke();
 						});
-						
+
 						if (PowerShellInstance.Streams.Error.Count > 0)
 						{
 							foreach (var error in PowerShellInstance.Streams.Error)
@@ -288,10 +325,11 @@ namespace encodeDecodeBase64
 				else
 				{
 					OnProgress(progress, "You should restart the program with administratrion privileges to be able to add server to TrustedHosts");
+					RestartEvasluated();
 					return false;
 				}
 
-				
+
 			}
 			catch (Exception exeption)
 			{
