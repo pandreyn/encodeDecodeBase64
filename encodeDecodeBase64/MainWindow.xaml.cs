@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows;
 using System.IO;
-using System.Windows.Forms;
 using System.Management.Automation;
 using System.Management;
 using System.ServiceProcess;
@@ -14,6 +13,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Diagnostics;
 using System.Reflection;
+using Newtonsoft.Json;
+using System.Windows.Forms;
 
 namespace encodeDecodeBase64
 {
@@ -22,6 +23,7 @@ namespace encodeDecodeBase64
 	/// </summary>
 	public partial class MainWindow : Window
 	{
+		private static string jsonFileName = AppDomain.CurrentDomain.BaseDirectory + "settings.json";
 		private AppSettings _settings = new AppSettings();
 		private CustomControlViewModel _customControlViewModel = new CustomControlViewModel();
 		private int _noOfErrorsOnScreen = 0;
@@ -31,6 +33,11 @@ namespace encodeDecodeBase64
 			InitializeComponent();
 			try
 			{
+				using (StreamReader r = new StreamReader(jsonFileName))
+				{
+					string json = r.ReadToEnd();
+					_settings = JsonConvert.DeserializeObject<AppSettings>(json);
+				}
 				if (ApplicationDeployment.IsNetworkDeployed)
 				{
 					this.Title = String.Format("{0} - v{1}", this.Title, ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString(4));
@@ -70,7 +77,7 @@ namespace encodeDecodeBase64
 
 		private void Window_Closed(object sender, EventArgs e)
 		{
-			_settings.SaveSettings();
+			_settings.SaveSettings(jsonFileName);
 		}
 
 		private void LoadFilesBtn_Click(object sender, RoutedEventArgs e)
@@ -82,7 +89,7 @@ namespace encodeDecodeBase64
 		{
 			using (var fbd = new FolderBrowserDialog())
 			{
-				var lastPath = Utils.GetLastPath();
+				var lastPath = _settings.LastPath;
 				if (!String.IsNullOrEmpty(lastPath)) {
 					fbd.SelectedPath = lastPath;
 				}
@@ -93,7 +100,7 @@ namespace encodeDecodeBase64
 				{
 					if (lastPath != fbd.SelectedPath)
 					{
-						Utils.SetLastPath(fbd.SelectedPath);
+						_settings.LastPath = fbd.SelectedPath;
 					}
 					string[] files = Directory.GetFiles(fbd.SelectedPath, "*.js");
 					
@@ -121,7 +128,7 @@ namespace encodeDecodeBase64
 			ConsoleTxt.Clear();
 			ConsoleTxt.AppendText("Start.");
 			ConsoleTxt.AppendText(Environment.NewLine);
-			ConsoleTxt.AppendText("Connecting to server " + Utils.GetServerNameFull());
+			ConsoleTxt.AppendText("Connecting to server " + _settings.GetServerNameFull());
 			ConsoleTxt.AppendText(Environment.NewLine);
 
 			UploadBtn.IsEnabled = false;
@@ -154,11 +161,11 @@ namespace encodeDecodeBase64
 				OnProgress(progress, "Restarting IIS...");
 				await Task.Run(() =>
 				{
-					var serverName = Utils.GetServerNameFull();
+					var serverName = _settings.GetServerNameFull();
 
 					ConnectionOptions options = new ConnectionOptions();
-					options.Password = Utils.GetPassword();
-					options.Username = Utils.GetUserNameFull();
+					options.Password = _settings.Password;
+					options.Username = _settings.GetUserNameFull();
 					options.Impersonation = ImpersonationLevel.Impersonate;
 
 					var remoteComputer = "\\\\" + serverName + "\\root\\cimv2";
@@ -205,9 +212,9 @@ namespace encodeDecodeBase64
 				OnProgress(progress, "Updating control in sql database...");
 				await Task.Run(() =>
 				{
-					PSCredential credential = new PSCredential(Utils.GetUserNameFull(), Utils.GetSecuredPassword());
+					PSCredential credential = new PSCredential(_settings.GetUserNameFull(), _settings.GetSecuredPassword());
 
-					WSManConnectionInfo connectionInfo = new WSManConnectionInfo(new Uri("http://" + Utils.GetServerNameFull() + ":5985/wsman"), "http://schemas.microsoft.com/powershell/Microsoft.PowerShell", credential);
+					WSManConnectionInfo connectionInfo = new WSManConnectionInfo(new Uri("http://" + _settings.GetServerNameFull() + ":5985/wsman"), "http://schemas.microsoft.com/powershell/Microsoft.PowerShell", credential);
 					connectionInfo.AuthenticationMechanism = AuthenticationMechanism.Default;
 
 					Runspace runspace = RunspaceFactory.CreateRunspace(connectionInfo);
@@ -215,7 +222,7 @@ namespace encodeDecodeBase64
 
 					using (PowerShell ps = PowerShell.Create())
 					{
-						string orgName = Utils.GetOrgName();						
+						string orgName = _settings.OrgName;						
 
 						ps.Runspace = runspace;
 						Pipeline pipeline = runspace.CreatePipeline();
@@ -303,7 +310,7 @@ namespace encodeDecodeBase64
 					{
 						await Task.Run(() =>
 						{
-							string value = trustedHosts == "" ? Utils.GetServerNameFull() : (trustedHosts + ", " + Utils.GetServerNameFull());
+							string value = trustedHosts == "" ? _settings.GetServerNameFull() : (trustedHosts + ", " + _settings.GetServerNameFull());
 							var script = "set-item -path WSMan:\\localhost\\Client\\TrustedHosts -Value \"" + value.ToLower() + "\" -Force";
 							PowerShellInstance.AddScript(script);
 							PowerShellInstance.Invoke();
@@ -351,7 +358,7 @@ namespace encodeDecodeBase64
 					var PSOutput = PowerShellInstance.Invoke();
 					
 					var trustedHosts = PSOutput[0].Properties["Value"].Value.ToString();
-					var server = Utils.GetServerNameFull();
+					var server = _settings.GetServerNameFull();
 					if (trustedHosts.Contains(server))
 					{
 						OnProgress(progress, "OK. The Server is in TrustedHosts.");
@@ -383,7 +390,7 @@ namespace encodeDecodeBase64
 
 		private void btnSave_Click(object sender, RoutedEventArgs e)
 		{
-			_settings.SaveSettings();
+			_settings.SaveSettings(jsonFileName);
 		}
 
 		private void UploadCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)

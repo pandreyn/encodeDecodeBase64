@@ -61,6 +61,7 @@
 									<RowDefinition Height="Auto"/>
 									<RowDefinition Height="Auto"/>
 									<RowDefinition Height="Auto"/>
+									<RowDefinition Height="Auto"/>
 								</Grid.RowDefinitions>
 
 
@@ -91,6 +92,11 @@
 									 Validation.Error="Validation_Error"
 									 Style="{StaticResource txtValidate}"
 									 Text="{Binding UpdateSourceTrigger=PropertyChanged, Path=Password,
+											ValidatesOnDataErrors=true, NotifyOnValidationError=true}"/>
+
+								<TextBlock Margin="5" Grid.Row="4" Grid.Column="0">Last path:</TextBlock>
+								<TextBlock x:Name="LastPathTxt" Grid.Row="4" Grid.Column="1" 
+									 Text="{Binding UpdateSourceTrigger=PropertyChanged, Path=LastPath,
 											ValidatesOnDataErrors=true, NotifyOnValidationError=true}"/>
 
 

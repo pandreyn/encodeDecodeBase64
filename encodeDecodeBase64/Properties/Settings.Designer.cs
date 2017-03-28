@@ -74,54 +74,6 @@ namespace encodeDecodeBase64.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Servername {
-            get {
-                return ((string)(this["Servername"]));
-            }
-            set {
-                this["Servername"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Orgname {
-            get {
-                return ((string)(this["Orgname"]));
-            }
-            set {
-                this["Orgname"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Login {
-            get {
-                return ((string)(this["Login"]));
-            }
-            set {
-                this["Login"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string Password {
-            get {
-                return ((string)(this["Password"]));
-            }
-            set {
-                this["Password"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
         public string Filename {
             get {
                 return ((string)(this["Filename"]));
@@ -152,18 +104,6 @@ namespace encodeDecodeBase64.Properties {
             }
             set {
                 this["RightPanel"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string LastPath {
-            get {
-                return ((string)(this["LastPath"]));
-            }
-            set {
-                this["LastPath"] = value;
             }
         }
     }

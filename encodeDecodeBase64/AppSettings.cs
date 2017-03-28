@@ -1,9 +1,12 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace encodeDecodeBase64
 {
@@ -13,17 +16,15 @@ namespace encodeDecodeBase64
 		private string _orgName;
 		private string _userName;
 		private string _password;
+		private string _lastPath;
 
+		[field: NonSerialized()]
 		public event PropertyChangedEventHandler PropertyChanged;
 
 		public string ServerName {
 			get { return _serverName; }
 			set
 			{
-				if (_serverName != null && _serverName != value)
-				{
-					Utils.SetServerName(value);
-				}
 				_serverName = value;
 				OnPropertyChanged("ServerName");
 			}
@@ -33,10 +34,6 @@ namespace encodeDecodeBase64
 			get { return _orgName; }
 			set
 			{
-				if (_orgName != null && _orgName != value)
-				{
-					Utils.SetOrgName(value);
-				}
 				_orgName = value;
 				OnPropertyChanged("OrgName");
 			}
@@ -46,10 +43,6 @@ namespace encodeDecodeBase64
 			get { return _userName; }
 			set
 			{
-				if (_userName != null && _userName != value)
-				{
-					Utils.SetUserName(value);
-				}
 				_userName = value;
 				OnPropertyChanged("UserName");
 			}
@@ -59,21 +52,47 @@ namespace encodeDecodeBase64
 			get { return _password; }
 			set
 			{
-				if (_password != null && _password != value)
-				{
-					Utils.SetPassword(value);
-				}
 				_password = value;
+				OnPropertyChanged("Password");
+			}
+		}
+		public string LastPath
+		{
+			get { return _lastPath; }
+			set
+			{
+				_lastPath = value;
 				OnPropertyChanged("Password");
 			}
 		}
 
 		public AppSettings()
 		{
-			this.ServerName = Utils.GetServerName();
-			this.OrgName = Utils.GetOrgName();
-			this.UserName = Utils.GetUserName();
-			this.Password = Utils.GetPassword();
+			//this.ServerName = Utils.GetServerName();
+			//this.OrgName = Utils.GetOrgName();
+			//this.UserName = Utils.GetUserName();
+			//this.Password = Utils.GetPassword();
+		}
+
+		public string GetServerNameFull()
+		{
+			return String.Format("{0}.{0}dom.extest.microsoft.com", this.ServerName);
+		}
+
+		public string GetUserNameFull()
+		{
+			return String.Format(@"{0}dom\{1}", this.ServerName, this.UserName);
+		}
+
+		public SecureString GetSecuredPassword()
+		{
+			var secure = new SecureString();
+			foreach (char c in this.Password)
+			{
+				secure.AppendChar(c);
+			}
+
+			return secure;
 		}
 
 		public Boolean IsNotFull()
@@ -84,13 +103,15 @@ namespace encodeDecodeBase64
 				|| String.IsNullOrEmpty(this.Password);
 		}
 
-		public void SaveSettings()
+		public void SaveSettings(string jsonFileName)
 		{
-			Properties.Settings.Default.Save();
+			string data = JsonConvert.SerializeObject(this, Formatting.Indented);
+			File.WriteAllText(jsonFileName, data);
 		}
 
 		#region IDataErrorInfo Members
 
+		[JsonIgnore]
 		public string Error
 		{
 			get { throw new NotImplementedException(); }
